@@ -2,8 +2,15 @@
 'use client';
 import { useMemo, useState } from 'react';
 
-export const metadata = { title: 'Medical Visa' };
+export const metadata = {
+  title: 'Medical Visa'
+};
 
+import VisaClient from './VisaClient';
+
+export default function Page() {
+  return <VisaClient />;
+}
 const baseChecklist = {
   generic: ['Passport (6+ months validity)', 'Recent photographs', 'Hospital invitation/LOI', 'Proof of funds', 'Travel itinerary', 'Medical records'],
   india: ['Online visa form', 'Biometric appointment', 'Visa fee receipt'],
