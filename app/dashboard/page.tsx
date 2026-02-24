@@ -1,17 +1,14 @@
-
-'use client';
-import { useState } from 'react';
 import PayDepositButton from '@/components/PayDepositButton';
 
 export const metadata = { title: 'Dashboard' };
 
-export default function DashboardPage() {
-  const [itinerary] = useState([
-    { date: '2026-03-01', item: 'Tele-consult (oncology)' },
-    { date: '2026-03-05', item: 'Visa biometrics appointment' },
-    { date: '2026-03-20', item: 'Arrival · Airport pickup' },
-  ]);
+const itinerary = [
+  { date: '2026-03-01', item: 'Tele-consult (oncology)' },
+  { date: '2026-03-05', item: 'Visa biometrics appointment' },
+  { date: '2026-03-20', item: 'Arrival · Airport pickup' },
+];
 
+export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Your Dashboard</h1>
