@@ -1,3 +1,11 @@
+export const metadata = { title: 'Dashboard' };
+
+import DashboardClient from './DashboardClient';
+
+export default function DashboardPage() {
+  return <DashboardClient />;
+}
+
 import { useState } from 'react';
 import PayDepositButton from '@/components/PayDepositButton';
 
