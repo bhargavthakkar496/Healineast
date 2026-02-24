@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sanitizeEmail, sanitizeText } from '../../../lib/utils';
+import { sanitizeEmail, sanitizeText } from '@/lib/utils';
 
 export async function POST(req: NextRequest) {
   const payload = await req.json();

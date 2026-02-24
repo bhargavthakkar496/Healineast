@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sanitizePositiveAmount } from '../../../../../lib/utils';
+import { sanitizePositiveAmount } from '@/lib/utils';
 
 export async function POST(req: NextRequest) {
   const payload = await req.json();
