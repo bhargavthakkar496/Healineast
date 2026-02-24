@@ -1,0 +1,10 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+body { @apply bg-white text-slate-800; }
+.container { @apply max-w-7xl mx-auto px-4; }
+
+.badge { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs; }
