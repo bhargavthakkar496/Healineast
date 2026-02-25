@@ -12,14 +12,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
     }
 
-    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
-    if (!keyId) {
-      return NextResponse.json(
-        { error: 'Razorpay key is not configured on server.' },
-        { status: 500 }
-      );
-    }
-
     const receipt = `deposit_${Date.now()}`;
     const order = await createRazorpayOrder({
       amountInMajorUnits: amount,
@@ -37,7 +29,7 @@ export async function POST(req: NextRequest) {
       currency: order.currency,
       receipt: order.receipt,
       status: order.status,
-      keyId,
+      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
     console.error('Razorpay order creation failed', error);
