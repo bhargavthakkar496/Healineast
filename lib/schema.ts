@@ -11,7 +11,7 @@ export interface Provider {
   geo: { lat: number; lng: number };
   verified: boolean;
   languages: string[];
-  specialties: ('Cardiac'|'Oncology'|'Fertility'|'Cosmetics')[];
+  specialties: ('Cardiac'|'Oncology'|'Fertility'|'Cosmetics'|'Wellness')[];
   rating: number;
   reviewCount: number;
   distanceToAirportKm?: number;
@@ -21,7 +21,7 @@ export interface Doctor {
   id: string;
   provider_id: string;
   name: string;
-  specialties: ('Cardiac'|'Oncology'|'Fertility'|'Cosmetics')[];
+  specialties: ('Cardiac'|'Oncology'|'Fertility'|'Cosmetics'|'Wellness')[];
   experience_years: number;
   languages: string[];
   rating: number;
@@ -31,7 +31,7 @@ export interface Procedure {
   id: string;
   provider_id: string;
   name: string;
-  specialty: 'Cardiac'|'Oncology'|'Fertility'|'Cosmetics';
+  specialty: 'Cardiac'|'Oncology'|'Fertility'|'Cosmetics'|'Wellness';
   base_price: number; // indicative in provider currency
   currency: string;
   inclusions: string[];
