@@ -6,12 +6,17 @@ import { cookies } from 'next/headers';
 
 import { sanitizeEmail, sanitizeText } from '@/lib/utils';
 
-const USERS_FILE = process.env.AUTH_USERS_FILE
-  ? path.resolve(process.env.AUTH_USERS_FILE)
-  : process.env.NODE_ENV === 'production'
-    ? '/tmp/healineast-users.json'
-    : path.join(process.cwd(), 'data', 'users.json');
-const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
+// Single source of truth:
+// - If AUTH_USERS_FILE is provided (via Amplify env or SSM), use it.
+// - In production (serverless), default to /tmp/* which is writable.
+// - In dev, use a repo-local file under /data.
+const USERS_FILE =
+  process.env.AUTH_USERS_FILE
+    ? path.resolve(process.env.AUTH_USERS_FILE)
+    : process.env.NODE_ENV === 'production'
+      ? '/tmp/healineast-users.json'
+      : path.join(process.cwd(), 'data', 'users.json');
+
 const SESSION_COOKIE = 'healineast_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
@@ -56,7 +61,9 @@ function verifyPassword(password: string, hashWithSalt: string) {
 
 function signSession(payload: SessionPayload) {
   const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const signature = createHmac('sha256', getSessionSecret()).update(encodedPayload).digest('base64url');
+  const signature = createHmac('sha256', getSessionSecret())
+    .update(encodedPayload)
+    .digest('base64url');
   return `${encodedPayload}.${signature}`;
 }
 
@@ -72,9 +79,13 @@ function parseSession(token: string | undefined): SessionPayload | null {
   if (signature !== expectedSignature) return null;
 
   try {
-    const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString('utf8')) as SessionPayload;
+    const payload = JSON.parse(
+      Buffer.from(encodedPayload, 'base64url').toString('utf8')
+    ) as SessionPayload;
+
     if (!payload.sub || !payload.email || !payload.exp) return null;
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+
     return payload;
   } catch {
     return null;
@@ -87,6 +98,7 @@ async function readUsers(): Promise<StoredUser[]> {
     const users = JSON.parse(content) as StoredUser[];
     return Array.isArray(users) ? users : [];
   } catch {
+    // File may not exist yet or be unreadable; treat as empty.
     return [];
   }
 }
@@ -124,7 +136,12 @@ export function validateSigninPayload(payload: Record<string, unknown>) {
   return { value: { email, password } };
 }
 
-export async function createUser(data: { fullName: string; email: string; country: string; password: string }) {
+export async function createUser(data: {
+  fullName: string;
+  email: string;
+  country: string;
+  password: string;
+}) {
   const users = await readUsers();
   const existing = users.find((u) => u.email === data.email);
   if (existing) {
@@ -151,52 +168,3 @@ export async function authenticateUser(data: { email: string; password: string }
   const user = users.find((candidate) => candidate.email === data.email);
   if (!user) {
     return { error: 'No account found for this email.' };
-  }
-
-  const validPassword = verifyPassword(data.password, user.passwordHash);
-  if (!validPassword) {
-    return { error: 'Incorrect password.' };
-  }
-
-  return { value: user };
-}
-
-export function createSessionToken(user: StoredUser) {
-  const payload: SessionPayload = {
-    sub: user.id,
-    email: user.email,
-    fullName: user.fullName,
-    exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
-  };
-
-  return signSession(payload);
-}
-
-export function setSessionCookie(token: string) {
-  cookies().set({
-    name: SESSION_COOKIE,
-    value: token,
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: SESSION_TTL_SECONDS,
-  });
-}
-
-export function clearSessionCookie() {
-  cookies().set({
-    name: SESSION_COOKIE,
-    value: '',
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 0,
-  });
-}
-
-export function getCurrentSession() {
-  const token = cookies().get(SESSION_COOKIE)?.value;
-  return parseSession(token);
-}
