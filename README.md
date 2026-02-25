@@ -34,6 +34,7 @@ Copy and edit `.env.example` → `.env.local`.
 - `GET /api/auth/session`: returns current authenticated user based on the session cookie.
 - `/dashboard` now requires a valid session; unauthenticated users are redirected to `/auth`.
 
+> Important: current user storage is file-based for MVP/local usage. In production/serverless, set `AUTH_USERS_FILE` to a writable path (for example `/tmp/healineast-users.json`) and use a strong `AUTH_SESSION_SECRET`. For scale and reliability, move users to a real database (Postgres/MySQL).
 > Important: current user storage is file-based for MVP/local usage. For production, move users to a database (Postgres/MySQL) and rotate `AUTH_SESSION_SECRET`.
 
 ## Integrations (stubs & guidance)

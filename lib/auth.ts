@@ -6,6 +6,11 @@ import { cookies } from 'next/headers';
 
 import { sanitizeEmail, sanitizeText } from '@/lib/utils';
 
+const USERS_FILE = process.env.AUTH_USERS_FILE
+  ? path.resolve(process.env.AUTH_USERS_FILE)
+  : process.env.NODE_ENV === 'production'
+    ? '/tmp/healineast-users.json'
+    : path.join(process.cwd(), 'data', 'users.json');
 const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
 const SESSION_COOKIE = 'healineast_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
