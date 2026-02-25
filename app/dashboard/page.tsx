@@ -16,7 +16,10 @@ export default function DashboardPage() {
         <h2 className="mb-2 text-lg font-semibold">Itinerary</h2>
         <ul className="space-y-2">
           {itinerary.map((stop) => (
-            <li key={`${stop.date}-${stop.item}`} className="flex items-center justify-between rounded-xl border px-4 py-3">
+            <li
+              key={`${stop.date}-${stop.item}`}
+              className="flex items-center justify-between rounded-xl border px-4 py-3"
+            >
               <span>{stop.date}</span>
               <span>{stop.item}</span>
             </li>
@@ -35,7 +38,8 @@ export default function DashboardPage() {
         <h2 className="mb-2 text-lg font-semibold">Secure payment</h2>
         <PayDepositButton amount={200} />
         <p className="mt-2 text-xs text-slate-500">
-          Demo only: creates a mock Razorpay order server-side. Replace with real API calls and Checkout.js initialization.
+          Razorpay checkout is live here. If payment does not open, verify `RAZORPAY_KEY_ID`,
+          `RAZORPAY_KEY_SECRET`, and `NEXT_PUBLIC_RAZORPAY_KEY_ID` in deployment envs.
         </p>
       </section>
     </div>

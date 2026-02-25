@@ -1,15 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sanitizePositiveAmount } from '../../../../../lib/utils';
+import { createRazorpayOrder } from '../../../../../lib/integrations';
+import { sanitizePositiveAmount, sanitizeText } from '../../../../../lib/utils';
 
 export async function POST(req: NextRequest) {
-  const payload = await req.json();
-  const amount = sanitizePositiveAmount(payload?.amount);
+  try {
+    const payload = await req.json();
+    const amount = sanitizePositiveAmount(payload?.amount);
+    const currency = sanitizeText(payload?.currency, 8) || 'INR';
 
-  if (!amount) {
-    return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+    if (!amount) {
+      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+    }
+
+    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
+    if (!keyId) {
+      return NextResponse.json(
+        { error: 'Razorpay key is not configured on server.' },
+        { status: 500 }
+      );
+    }
+
+    const receipt = `deposit_${Date.now()}`;
+    const order = await createRazorpayOrder({
+      amountInMajorUnits: amount,
+      currency,
+      receipt,
+      notes: {
+        product: 'medical-travel-deposit',
+      },
+    });
+
+    return NextResponse.json({
+      orderId: order.id,
+      amount: order.amount / 100,
+      amountInMinorUnits: order.amount,
+      currency: order.currency,
+      receipt: order.receipt,
+      status: order.status,
+      keyId,
+    });
+  } catch (error) {
+    console.error('Razorpay order creation failed', error);
+    return NextResponse.json(
+      { error: 'Unable to create payment order right now.' },
+      { status: 500 }
+    );
   }
-
-  // Normally: create order via Razorpay REST using RAZORPAY_KEY_ID/SECRET
-  const orderId = 'order_' + Math.random().toString(36).slice(2);
-  return NextResponse.json({ orderId, amount, currency: 'USD' });
 }
