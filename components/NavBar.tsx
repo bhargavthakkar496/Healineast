@@ -15,6 +15,7 @@ const links = [
   { href: '/visa', label: 'Medical Visa' },
   { href: '/insurance', label: 'Insurance' },
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/auth', label: 'Login / Signup' },
 ] as const satisfies ReadonlyArray<{ href: Route; label: string }>;
 
 export default function NavBar() {
