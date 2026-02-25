@@ -1,4 +1,4 @@
-import { sanitizeText } from './utils';
+import { sanitizeCurrencyCode, sanitizePhoneNumber } from './utils';
 
 const RAZORPAY_API_BASE = 'https://api.razorpay.com/v1';
 const WHATSAPP_API_BASE = 'https://graph.facebook.com';
@@ -36,6 +36,7 @@ export async function createRazorpayOrder({
   notes,
 }: RazorpayOrderRequest): Promise<RazorpayOrderResponse> {
   const { keyId, keySecret } = getRazorpayCredentials();
+  const normalizedCurrency = sanitizeCurrencyCode(currency, 'INR');
   const amountInMinorUnits = Math.round(amountInMajorUnits * 100);
 
   const auth = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
@@ -47,7 +48,7 @@ export async function createRazorpayOrder({
     },
     body: JSON.stringify({
       amount: amountInMinorUnits,
-      currency,
+      currency: normalizedCurrency,
       receipt,
       notes,
       payment_capture: 1,
@@ -88,7 +89,7 @@ function getWhatsAppBusinessConfig() {
 }
 
 function toE164Number(rawPhone: string) {
-  return sanitizeText(rawPhone, 20).replace(/\D/g, '');
+  return sanitizePhoneNumber(rawPhone);
 }
 
 export async function sendWhatsAppTemplateMessage({

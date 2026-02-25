@@ -1,3 +1,4 @@
+import { safeSerializeJsonLd } from '@/lib/utils';
 
 export default function JSONLDSchema() {
   const json = {
@@ -8,5 +9,5 @@ export default function JSONLDSchema() {
     sameAs: [],
     logo: (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000') + '/logo.png'
   };
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeSerializeJsonLd(json) }} />;
 }

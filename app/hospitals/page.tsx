@@ -7,7 +7,7 @@ export const metadata = { title: 'Hospitals' };
 function filterProviders(q?: string, city?: string, specialty?: string) {
   let list = providers.filter((p) => p.accreditations.includes('JCI') || p.accreditations.includes('NABH'));
   if (city) list = list.filter((p) => p.city.toLowerCase().includes(city.toLowerCase()));
-  if (specialty) list = list.filter((p) => p.specialties.map(s=>s.toLowerCase()).includes(specialty.toLowerCase() as any));
+  if (specialty) list = list.filter((p) => p.specialties.some((s) => s.toLowerCase() === specialty.toLowerCase()));
   if (q) {
     const procProviders = new Set(
       procedures.filter((pr) => pr.name.toLowerCase().includes(q.toLowerCase())).map((pr) => pr.provider_id)

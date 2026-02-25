@@ -1,11 +1,15 @@
 'use client';
 
+import { sanitizePhoneNumber } from '@/lib/utils';
+
 const DEFAULT_WHATSAPP_NUMBER = '919016307635';
+const DEFAULT_MESSAGE = 'Hi HealinginEast, I need assistance with medical travel.';
 
 export default function WhatsAppButton() {
-  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+  const configuredNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+  const sanitizedNumber = sanitizePhoneNumber(configuredNumber || DEFAULT_WHATSAPP_NUMBER);
 
-  if (!number) {
+  if (!sanitizedNumber) {
     return (
       <div className="fixed bottom-6 right-6 rounded-full border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-lg">
         WhatsApp not configured
@@ -13,14 +17,15 @@ export default function WhatsAppButton() {
     );
   }
 
-  const href = `https://wa.me/${number}?text=Hi%20HealinginEast%2C%20I%20need%20assistance%20with%20medical%20travel.`;
+  const href = `https://wa.me/${sanitizedNumber}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
 
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full shadow-lg"
+      className="fixed bottom-6 right-6 rounded-full bg-green-500 px-4 py-3 text-white shadow-lg hover:bg-green-600"
+      aria-label="Contact HealinginEast on WhatsApp"
     >
       WhatsApp Us
     </a>

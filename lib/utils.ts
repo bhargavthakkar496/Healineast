@@ -19,6 +19,27 @@ export function sanitizeEmail(input: unknown) {
   return emailPattern.test(email) ? email : '';
 }
 
+export function sanitizePhoneNumber(input: unknown, minLength = 8, maxLength = 15) {
+  const digits = sanitizeText(input, 20).replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.length < minLength || digits.length > maxLength) return '';
+  return digits;
+}
+
+export function sanitizeCurrencyCode(input: unknown, fallback = 'INR') {
+  const code = sanitizeText(input, 3).toUpperCase();
+  return /^[A-Z]{3}$/.test(code) ? code : fallback;
+}
+
+export function safeSerializeJsonLd(input: unknown) {
+  return JSON.stringify(input)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 export function sanitizePositiveAmount(input: unknown, max = 1000000) {
   const amount = typeof input === 'number' ? input : Number(input);
   if (!Number.isFinite(amount) || amount <= 0) return null;
