@@ -1,4 +1,8 @@
+import { redirect } from 'next/navigation';
+
+import SignOutButton from '@/components/SignOutButton';
 import PayDepositButton from '@/components/PayDepositButton';
+import { getCurrentSession } from '@/lib/auth';
 
 export const metadata = { title: 'Dashboard' };
 
@@ -9,9 +13,21 @@ const itinerary = [
 ];
 
 export default function DashboardPage() {
+  const session = getCurrentSession();
+
+  if (!session) {
+    redirect('/auth');
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Your Dashboard</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Your Dashboard</h1>
+          <p className="text-sm text-slate-600">Signed in as {session.email}</p>
+        </div>
+        <SignOutButton />
+      </div>
       <section>
         <h2 className="mb-2 text-lg font-semibold">Itinerary</h2>
         <ul className="space-y-2">
