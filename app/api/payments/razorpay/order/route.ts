@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRazorpayOrder } from '../../../../../lib/integrations';
-import { sanitizePositiveAmount, sanitizeText } from '../../../../../lib/utils';
+import { sanitizeCurrencyCode, sanitizePositiveAmount } from '../../../../../lib/utils';
 
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
     const amount = sanitizePositiveAmount(payload?.amount);
-    const currency = sanitizeText(payload?.currency, 8) || 'INR';
+    const currency = sanitizeCurrencyCode(payload?.currency, 'INR');
 
     if (!amount) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });

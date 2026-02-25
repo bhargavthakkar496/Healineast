@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendWhatsAppTemplateMessage } from '../../../lib/integrations';
-import { sanitizeEmail, sanitizeText } from '../../../lib/utils';
+import { sanitizeEmail, sanitizePhoneNumber, sanitizeText } from '../../../lib/utils';
 
 export async function POST(req: NextRequest) {
   const payload = await req.json();
 
   const patientName = sanitizeText(payload?.patientName, 120);
   const email = sanitizeEmail(payload?.email);
-  const whatsappNumber = sanitizeText(payload?.whatsappNumber, 20).replace(/\D/g, '');
+  const whatsappNumber = sanitizePhoneNumber(payload?.whatsappNumber);
   const nationality = sanitizeText(payload?.nationality, 80);
   const procedureId = sanitizeText(payload?.procedureId, 80);
   const preferredDate = sanitizeText(payload?.preferredDate, 20);

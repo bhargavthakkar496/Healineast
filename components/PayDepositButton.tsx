@@ -81,8 +81,9 @@ export default function PayDepositButton({ amount }: { amount: number }) {
       });
 
       razorpay.open();
-    } catch (e: any) {
-      setInfo(e.message || 'Payment setup failed');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Payment setup failed';
+      setInfo(message);
     } finally {
       setLoading(false);
     }
