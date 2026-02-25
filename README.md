@@ -26,6 +26,16 @@ Copy and edit `.env.example` → `.env.local`.
 - `NEXT_PUBLIC_WHATSAPP_NUMBER` → e.g., `919999999999`
 - Razorpay keys for server-side order creation + checkout.
 
+
+## Authentication (implemented)
+- `POST /api/auth/signup`: validates input, hashes password with `scrypt`, stores user record in `data/users.json`, and creates an HTTP-only session cookie.
+- `POST /api/auth/signin`: verifies existing account password and creates an HTTP-only session cookie.
+- `POST /api/auth/signout`: clears the session cookie.
+- `GET /api/auth/session`: returns current authenticated user based on the session cookie.
+- `/dashboard` now requires a valid session; unauthenticated users are redirected to `/auth`.
+
+> Important: current user storage is file-based for MVP/local usage. In production/serverless, set `AUTH_USERS_FILE` to a writable path (for example `/tmp/healineast-users.json`) and use a strong `AUTH_SESSION_SECRET`. For scale and reliability, move users to a real database (Postgres/MySQL).
+
 ## Integrations (stubs & guidance)
 ### Razorpay (integrated)
 - `/api/payments/razorpay/order` now creates real Razorpay orders using `RAZORPAY_KEY_ID/SECRET`.
