@@ -81,6 +81,21 @@ export const providers: Provider[] = [
     rating: 4.4,
     reviewCount: 142,
     distanceToAirportKm: 28,
+  },
+  {
+    id: 'prov_blr_well',
+    org_name: 'HealinginEast Partner · Bengaluru Integrative Wellness Center',
+    accreditations: ['NABH'],
+    country: 'India',
+    city: 'Bengaluru',
+    address: 'MG Road, Bengaluru',
+    geo: { lat: 12.9716, lng: 77.5946 },
+    verified: true,
+    languages: ['English','Hindi','Kannada'],
+    specialties: ['Wellness'],
+    rating: 4.6,
+    reviewCount: 128,
+    distanceToAirportKm: 34,
   }
 ];
 
@@ -90,6 +105,7 @@ export const doctors: Doctor[] = [
   { id: 'doc_kiran', provider_id: 'prov_kath_fert', name: 'Dr. Kiran Shrestha', specialties: ['Fertility'], experience_years: 12, languages: ['English','Nepali','Hindi'], rating: 4.6 },
   { id: 'doc_amina', provider_id: 'prov_dxb_cos', name: 'Dr. Amina Al-Sabah', specialties: ['Cosmetics'], experience_years: 14, languages: ['Arabic','English','Russian'], rating: 4.7 },
   { id: 'doc_ivan', provider_id: 'prov_mow_onc', name: 'Dr. Ivan Petrov', specialties: ['Oncology'], experience_years: 16, languages: ['Russian','English'], rating: 4.4 },
+  { id: 'doc_nisha', provider_id: 'prov_blr_well', name: 'Dr. Nisha Rao', specialties: ['Wellness'], experience_years: 11, languages: ['English','Hindi','Kannada'], rating: 4.7 },
 ];
 
 export const procedures: Procedure[] = [
@@ -147,5 +163,16 @@ export const procedures: Procedure[] = [
     inclusions: ['Drug cost', 'Oncologist review', 'Day-care'],
     exclusions: ['Genetic panel', 'Imaging'],
     avg_LOS_days: 1,
+  },
+  {
+    id: 'proc_detox_blr',
+    provider_id: 'prov_blr_well',
+    name: 'Integrative Wellness Detox Program (7 days)',
+    specialty: 'Wellness',
+    base_price: 1450,
+    currency: 'USD',
+    inclusions: ['Physician consult', 'Nutrition plan', 'Guided therapies', 'Daily monitoring'],
+    exclusions: ['Flights', 'Companion stay', 'Extended rehab'],
+    avg_LOS_days: 7,
   }
 ];
