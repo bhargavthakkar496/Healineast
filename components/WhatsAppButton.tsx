@@ -1,5 +1,7 @@
 'use client';
 
+const DEFAULT_WHATSAPP_NUMBER = '919016307635';
+
 export default function WhatsAppButton() {
   const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
@@ -12,6 +14,7 @@ export default function WhatsAppButton() {
   }
 
   const href = `https://wa.me/${number}?text=Hi%20HealinginEast%2C%20I%20need%20assistance%20with%20medical%20travel.`;
+
   return (
     <a
       href={href}
