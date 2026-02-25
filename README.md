@@ -29,12 +29,12 @@ Copy and edit `.env.example` → `.env.local`.
 ## Integrations (stubs & guidance)
 ### Razorpay (integrated)
 - `/api/payments/razorpay/order` now creates real Razorpay orders using `RAZORPAY_KEY_ID/SECRET`.
-- `PayDepositButton` dynamically loads Razorpay Checkout and opens payment UI with the returned order id.
+- `PayDepositButton` dynamically loads Razorpay Checkout and opens payment UI with the returned order id (visible on `/dashboard`).
 - Next step: add webhook verification (`payment.captured`, `payment.failed`) and persist transaction state.
 
 ### WhatsApp Business
 - We still provide click-to-chat via floating button and `NEXT_PUBLIC_WHATSAPP_NUMBER`.
-- Quote submissions can now trigger **WhatsApp Cloud API template messages** when Cloud API env vars are configured (`WHATSAPP_CLOUD_*`).
+- Quote submissions from treatment cards now trigger backend quote API and can send **WhatsApp Cloud API template messages** when Cloud API env vars are configured (`WHATSAPP_CLOUD_*`).
 - Next step: persist quote ids and include them in template variables for support workflows.
 
 ## Roadmap (≤ 2 months)
