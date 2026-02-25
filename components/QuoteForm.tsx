@@ -28,8 +28,9 @@ export default function QuoteForm({ procedureId }: { procedureId: string }) {
           'Request submitted! Our care team will contact you within 24 hours on email/WhatsApp.'
         );
       } else setMessage(data.error || 'Something went wrong');
-    } catch (e: any) {
-      setMessage(e.message || 'Network error');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Network error';
+      setMessage(message);
     } finally {
       setLoading(false);
     }
