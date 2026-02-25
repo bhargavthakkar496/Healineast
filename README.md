@@ -1,7 +1,7 @@
 
 # HealinginEast – Medical Tourism Aggregator (MVP)
 
-MVP for **HealinginEast**: compare **NABH/JCI** hospitals across **India, Nepal, UAE, Russia**, request quotes, generate medical visa checklists, and manage a simple itinerary with a demo deposit flow (Razorpay stub) and WhatsApp click-to-chat.
+MVP for **HealinginEast**: compare **NABH/JCI** hospitals across **India, Nepal, UAE, Russia**, request quotes, generate medical visa checklists, and manage a simple itinerary with integrated Razorpay checkout and WhatsApp Business notifications.
 
 ## Focus Scope
 - Markets (sources): Africa, SAARC (incl. Nepal), Russia, Middle East
@@ -24,17 +24,18 @@ npm run dev
 ## Environment
 Copy and edit `.env.example` → `.env.local`.
 - `NEXT_PUBLIC_WHATSAPP_NUMBER` → e.g., `919999999999`
-- Razorpay keys for production; this MVP uses a **mock order** API.
+- Razorpay keys for server-side order creation + checkout.
 
 ## Integrations (stubs & guidance)
-### Razorpay (to implement)
-- Create order server-side using `RAZORPAY_KEY_ID/SECRET` (auth: Basic, body: amount*100 in INR or chosen currency, receipt, etc.).
-- Initialize Checkout on client using `NEXT_PUBLIC_RAZORPAY_KEY_ID` and the order id.
-- Handle webhooks for payment success/failure and update booking/escrow state.
+### Razorpay (integrated)
+- `/api/payments/razorpay/order` now creates real Razorpay orders using `RAZORPAY_KEY_ID/SECRET`.
+- `PayDepositButton` dynamically loads Razorpay Checkout and opens payment UI with the returned order id (visible on `/dashboard`).
+- Next step: add webhook verification (`payment.captured`, `payment.failed`) and persist transaction state.
 
-### WhatsApp Business (click-to-chat)
-- We surface a floating button using `NEXT_PUBLIC_WHATSAPP_NUMBER`.
-- For programmatic messaging, set up the **WhatsApp Business Platform (Cloud API)** and send alerts server-side upon quote creation.
+### WhatsApp Business
+- We still provide click-to-chat via floating button and `NEXT_PUBLIC_WHATSAPP_NUMBER`.
+- Quote submissions from treatment cards now trigger backend quote API and can send **WhatsApp Cloud API template messages** when Cloud API env vars are configured (`WHATSAPP_CLOUD_*`).
+- Next step: persist quote ids and include them in template variables for support workflows.
 
 ## Roadmap (≤ 2 months)
 **Week 1–2 – Discovery & Design**: content, branding polish, provider onboarding, data model, consent & privacy copy.
