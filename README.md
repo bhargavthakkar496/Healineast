@@ -27,6 +27,27 @@ Copy and edit `.env.example` → `.env.local`.
 - Razorpay keys for server-side order creation + checkout.
 - `AUTH_DATABASE_URL` (or `DATABASE_URL`) for PostgreSQL-backed auth users table.
 
+### AWS RDS PostgreSQL quick setup
+If your auth database is hosted on AWS RDS/Aurora PostgreSQL, set `AUTH_DATABASE_URL` in `.env.local` using this format:
+
+```env
+AUTH_DATABASE_URL=postgresql://<username>:<password>@<endpoint>:5432/<database>?sslmode=require
+```
+
+Example with your provided endpoint values (replace password if rotated):
+
+```env
+AUTH_DATABASE_URL=postgresql://postgres:<password>@healingineast-userauthdb.c1ymkcukymyn.ap-northeast-1.rds.amazonaws.com:5432/healingineast-userauthdb?sslmode=require
+```
+
+Then verify connectivity:
+
+```bash
+psql "$AUTH_DATABASE_URL"
+```
+
+> Security note: do **not** commit real credentials to git; keep them only in `.env.local` (local) and deployment secret env vars.
+
 
 ## Authentication (implemented)
 - `POST /api/auth/signup`: validates input, hashes password with `scrypt`, stores user record in PostgreSQL, and creates an HTTP-only session cookie.
