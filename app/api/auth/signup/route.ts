@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
-
   const validated = validateSignupPayload(payload);
 
   if (validated.error || !validated.value) {
