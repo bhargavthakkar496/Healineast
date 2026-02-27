@@ -1,20 +1,10 @@
 import { randomUUID, scryptSync, timingSafeEqual, createHmac } from 'crypto';
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import path from 'path';
+import { Pool } from 'pg';
 
 import { cookies } from 'next/headers';
 import { sanitizeEmail, sanitizeText } from '@/lib/utils';
 
-// Single source of truth for users storage:
-// - Use AUTH_USERS_FILE if provided (Amplify env or SSM).
-// - On serverless/prod, write to /tmp (writable).
-// - In dev, use repo-local data/users.json.
-const USERS_FILE =
-  process.env.AUTH_USERS_FILE
-    ? path.resolve(process.env.AUTH_USERS_FILE)
-    : process.env.NODE_ENV === 'production'
-      ? '/tmp/healineast-users.json'
-      : path.join(process.cwd(), 'data', 'users.json');
+const DATABASE_URL = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
 
 const SESSION_COOKIE = 'healineast_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
@@ -33,6 +23,61 @@ interface SessionPayload {
   email: string;
   fullName: string;
   exp: number;
+}
+
+interface DbUserRow {
+  id: string;
+  full_name: string;
+  email: string;
+  country: string;
+  password_hash: string;
+  created_at: Date;
+}
+
+let pool: Pool | null = null;
+let usersTableReady: Promise<void> | null = null;
+
+function getPool() {
+  if (!DATABASE_URL) {
+    throw new Error('AUTH_DATABASE_URL (or DATABASE_URL) is required for auth.');
+  }
+
+  if (!pool) {
+    pool = new Pool({ connectionString: DATABASE_URL });
+  }
+
+  return pool;
+}
+
+async function ensureUsersTable() {
+  if (!usersTableReady) {
+    usersTableReady = (async () => {
+      const db = getPool();
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY,
+          full_name TEXT NOT NULL,
+          email TEXT NOT NULL UNIQUE,
+          country TEXT NOT NULL,
+          password_hash TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+    })();
+  }
+
+  await usersTableReady;
+}
+
+function mapRowToStoredUser(row: DbUserRow): StoredUser {
+  return {
+    id: row.id,
+    fullName: row.full_name,
+    email: row.email,
+    country: row.country,
+    passwordHash: row.password_hash,
+    createdAt: row.created_at.toISOString(),
+  };
 }
 
 function getSessionSecret() {
@@ -91,22 +136,6 @@ function parseSession(token: string | undefined): SessionPayload | null {
   }
 }
 
-async function readUsers(): Promise<StoredUser[]> {
-  try {
-    const content = await readFile(USERS_FILE, 'utf8');
-    const users = JSON.parse(content) as StoredUser[];
-    return Array.isArray(users) ? users : [];
-  } catch {
-    // File missing or unreadable → treat as empty set.
-    return [];
-  }
-}
-
-async function writeUsers(users: StoredUser[]) {
-  await mkdir(path.dirname(USERS_FILE), { recursive: true });
-  await writeFile(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
-}
-
 export function validateSignupPayload(payload: Record<string, unknown>) {
   const fullName = sanitizeText(payload.fullName, 120);
   const email = sanitizeEmail(payload.email);
@@ -141,11 +170,8 @@ export async function createUser(data: {
   country: string;
   password: string;
 }) {
-  const users = await readUsers();
-  const existing = users.find((u) => u.email === data.email);
-  if (existing) {
-    return { error: 'An account with this email already exists.' };
-  }
+  await ensureUsersTable();
+  const db = getPool();
 
   const newUser: StoredUser = {
     id: randomUUID(),
@@ -156,15 +182,46 @@ export async function createUser(data: {
     createdAt: new Date().toISOString(),
   };
 
-  users.push(newUser);
-  await writeUsers(users);
+  const created = await db.query<DbUserRow>(
+    `
+      INSERT INTO users (id, full_name, email, country, password_hash, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (email) DO NOTHING
+      RETURNING id, full_name, email, country, password_hash, created_at;
+    `,
+    [
+      newUser.id,
+      newUser.fullName,
+      newUser.email,
+      newUser.country,
+      newUser.passwordHash,
+      new Date(newUser.createdAt),
+    ]
+  );
 
-  return { value: newUser };
+  if (!created.rows[0]) {
+    return { error: 'An account with this email already exists.' };
+  }
+
+  return { value: mapRowToStoredUser(created.rows[0]) };
 }
 
 export async function authenticateUser(data: { email: string; password: string }) {
-  const users = await readUsers();
-  const user = users.find((candidate) => candidate.email === data.email);
+  await ensureUsersTable();
+  const db = getPool();
+
+  const result = await db.query<DbUserRow>(
+    `
+      SELECT id, full_name, email, country, password_hash, created_at
+      FROM users
+      WHERE email = $1
+      LIMIT 1;
+    `,
+    [data.email]
+  );
+
+  const row = result.rows[0];
+  const user = row ? mapRowToStoredUser(row) : null;
   if (!user) {
     return { error: 'No account found for this email.' };
   }
