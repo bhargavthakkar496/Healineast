@@ -37,6 +37,15 @@ Copy and edit `.env.example` → `.env.local`.
 
 > Important: auth now requires PostgreSQL. Set `AUTH_DATABASE_URL` (or `DATABASE_URL`) and use a strong `AUTH_SESSION_SECRET`.
 
+
+### Troubleshooting signup/signin
+If signup/signin fails and records are not being stored, verify the auth DB connection:
+- Ensure `AUTH_DATABASE_URL` (or `DATABASE_URL`) is set in `.env.local`.
+- Ensure PostgreSQL is running and reachable from the app process.
+- Try connecting manually with `psql "$AUTH_DATABASE_URL"`.
+
+When DB configuration is missing/unreachable, auth APIs now return explicit `503` errors indicating configuration or connectivity problems.
+
 ## Integrations (stubs & guidance)
 ### Razorpay (integrated)
 - `/api/payments/razorpay/order` now creates real Razorpay orders using `RAZORPAY_KEY_ID/SECRET`.
