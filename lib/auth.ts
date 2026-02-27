@@ -4,8 +4,6 @@ import { Pool } from 'pg';
 import { cookies } from 'next/headers';
 import { sanitizeEmail, sanitizeText } from '@/lib/utils';
 
-const DATABASE_URL = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
-
 const SESSION_COOKIE = 'healineast_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
@@ -37,13 +35,21 @@ interface DbUserRow {
 let pool: Pool | null = null;
 let usersTableReady: Promise<void> | null = null;
 
-function getPool() {
-  if (!DATABASE_URL) {
+function getDatabaseUrl() {
+  const databaseUrl = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
     throw new Error('AUTH_DATABASE_URL (or DATABASE_URL) is required for auth.');
   }
 
+  return databaseUrl;
+}
+
+function getPool() {
+  const databaseUrl = getDatabaseUrl();
+
   if (!pool) {
-    pool = new Pool({ connectionString: DATABASE_URL });
+    pool = new Pool({ connectionString: databaseUrl });
   }
 
   return pool;
@@ -66,7 +72,12 @@ async function ensureUsersTable() {
     })();
   }
 
-  await usersTableReady;
+  try {
+    await usersTableReady;
+  } catch (error) {
+    usersTableReady = null;
+    throw error;
+  }
 }
 
 function mapRowToStoredUser(row: DbUserRow): StoredUser {
