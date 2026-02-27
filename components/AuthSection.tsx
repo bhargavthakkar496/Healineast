@@ -39,8 +39,14 @@ export default function AuthSection() {
         body: JSON.stringify(payload),
       });
 
-      const text = await res.text();
-      const data = text ? (JSON.parse(text) as { error?: string }) : {};
+      let data: { error?: string } = {};
+
+      try {
+        data = (await res.json()) as { error?: string };
+      } catch {
+        // Ignore non-JSON responses and use fallback messaging below.
+      }
+
       if (!res.ok) {
         setError(
           data.error ||
