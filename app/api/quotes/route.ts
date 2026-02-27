@@ -3,7 +3,13 @@ import { sendWhatsAppTemplateMessage } from '../../../lib/integrations';
 import { sanitizeEmail, sanitizePhoneNumber, sanitizeText } from '../../../lib/utils';
 
 export async function POST(req: NextRequest) {
-  const payload = await req.json();
+  let payload: Record<string, unknown>;
+
+  try {
+    payload = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+  }
 
   const patientName = sanitizeText(payload?.patientName, 120);
   const email = sanitizeEmail(payload?.email);

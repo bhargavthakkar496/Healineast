@@ -3,7 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser, createSessionToken, setSessionCookie, validateSigninPayload } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  const payload = (await req.json()) as Record<string, unknown>;
+  let payload: Record<string, unknown>;
+
+  try {
+    payload = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+  }
   const validated = validateSigninPayload(payload);
 
   if (validated.error || !validated.value) {

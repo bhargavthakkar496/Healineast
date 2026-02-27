@@ -81,7 +81,13 @@ function mapRowToStoredUser(row: DbUserRow): StoredUser {
 }
 
 function getSessionSecret() {
-  return process.env.AUTH_SESSION_SECRET || 'dev-only-secret-change-me';
+  const secret = process.env.AUTH_SESSION_SECRET || 'dev-only-secret-change-me';
+
+  if (process.env.NODE_ENV === 'production' && secret === 'dev-only-secret-change-me') {
+    throw new Error('AUTH_SESSION_SECRET must be configured in production.');
+  }
+
+  return secret;
 }
 
 function hashPassword(password: string, salt?: string) {
@@ -120,7 +126,10 @@ function parseSession(token: string | undefined): SessionPayload | null {
     .update(encodedPayload)
     .digest('base64url');
 
-  if (signature !== expectedSignature) return null;
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+  if (signatureBuffer.length !== expectedBuffer.length) return null;
+  if (!timingSafeEqual(signatureBuffer, expectedBuffer)) return null;
 
   try {
     const payload = JSON.parse(

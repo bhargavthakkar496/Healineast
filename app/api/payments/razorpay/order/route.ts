@@ -4,7 +4,14 @@ import { sanitizeCurrencyCode, sanitizePositiveAmount } from '../../../../../lib
 
 export async function POST(req: NextRequest) {
   try {
-    const payload = await req.json();
+    let payload: Record<string, unknown>;
+
+    try {
+      payload = (await req.json()) as Record<string, unknown>;
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+    }
+
     const amount = sanitizePositiveAmount(payload?.amount);
     const currency = sanitizeCurrencyCode(payload?.currency, 'INR');
 
