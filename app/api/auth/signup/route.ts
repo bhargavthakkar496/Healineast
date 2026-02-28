@@ -4,10 +4,16 @@ import { createSessionToken, createUser, setSessionCookie, validateSignupPayload
 
 function toAuthServiceError(error: unknown) {
   if (error instanceof Error) {
-    if (error.message.includes('AUTH_DATABASE_URL') || error.message.includes('DATABASE_URL')) {
+    if (
+      error.message.includes('AUTH_DATABASE_URL') ||
+      error.message.includes('DATABASE_URL') ||
+      error.message.includes('POSTGRES_URL') ||
+      error.message.includes('PGHOST')
+    ) {
       return {
         status: 503,
-        message: 'Authentication service is not configured. Set AUTH_DATABASE_URL and try again.',
+        message:
+          'Authentication service is not configured. Set AUTH_DATABASE_URL (or DATABASE_URL / POSTGRES_URL). You can also provide PGHOST/PGUSER/PGPASSWORD/PGDATABASE and try again.',
       };
     }
 
