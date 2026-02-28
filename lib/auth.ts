@@ -45,11 +45,36 @@ function getFromEnv(...keys: string[]) {
 }
 
 function buildDatabaseUrlFromParts() {
-  const host = getFromEnv('AUTH_DB_HOST', 'PGHOST', 'POSTGRES_HOST', 'RDS_HOSTNAME');
-  const port = getFromEnv('AUTH_DB_PORT', 'PGPORT', 'POSTGRES_PORT', 'RDS_PORT') || '5432';
-  const database = getFromEnv('AUTH_DB_NAME', 'PGDATABASE', 'POSTGRES_DATABASE', 'RDS_DB_NAME');
-  const user = getFromEnv('AUTH_DB_USER', 'PGUSER', 'POSTGRES_USER', 'RDS_USERNAME');
-  const password = getFromEnv('AUTH_DB_PASSWORD', 'PGPASSWORD', 'POSTGRES_PASSWORD', 'RDS_PASSWORD');
+  const host = getFromEnv(
+    'AUTH_DB_HOST',
+    'DB_HOST',
+    'PGHOST',
+    'POSTGRES_HOST',
+    'RDS_HOSTNAME'
+  );
+  const port = getFromEnv('AUTH_DB_PORT', 'DB_PORT', 'PGPORT', 'POSTGRES_PORT', 'RDS_PORT') || '5432';
+  const database = getFromEnv(
+    'AUTH_DB_NAME',
+    'DB_NAME',
+    'PGDATABASE',
+    'POSTGRES_DATABASE',
+    'RDS_DB_NAME'
+  );
+  const user = getFromEnv(
+    'AUTH_DB_USER',
+    'DB_USER',
+    'DB_USERNAME',
+    'PGUSER',
+    'POSTGRES_USER',
+    'RDS_USERNAME'
+  );
+  const password = getFromEnv(
+    'AUTH_DB_PASSWORD',
+    'DB_PASSWORD',
+    'PGPASSWORD',
+    'POSTGRES_PASSWORD',
+    'RDS_PASSWORD'
+  );
 
   if (!host || !database || !user || !password) {
     return null;
@@ -81,9 +106,39 @@ function getDatabaseUrl() {
 
 function getPool() {
   const databaseUrl = getDatabaseUrl();
+  const sslMode = getFromEnv('AUTH_DB_SSL', 'DB_SSL', 'PGSSLMODE', 'AUTH_DB_SSLMODE')?.toLowerCase();
+  const shouldDisableSsl = sslMode === 'disable' || sslMode === 'false' || sslMode === 'off';
+  const shouldRequireSsl = sslMode === 'require' || sslMode === 'true' || sslMode === 'on';
+
+  const host = getFromEnv(
+    'AUTH_DB_HOST',
+    'DB_HOST',
+    'PGHOST',
+    'POSTGRES_HOST',
+    'RDS_HOSTNAME'
+  );
+  const hasExplicitSslMode = /(?:[?&])sslmode=/i.test(databaseUrl);
+  const isLocalHost = Boolean(host && /^(localhost|127\.0\.0\.1|::1)$/i.test(host));
+  const isRdsHost = Boolean(host && host.includes('rds.amazonaws.com'));
+
+  const useSsl =
+    !shouldDisableSsl &&
+    (shouldRequireSsl || hasExplicitSslMode || isRdsHost || (process.env.NODE_ENV === 'production' && !isLocalHost));
+
+  const rejectUnauthorizedRaw =
+    getFromEnv('AUTH_DB_SSL_REJECT_UNAUTHORIZED', 'DB_SSL_REJECT_UNAUTHORIZED', 'PGSSLCERT_STRICT') ||
+    'true';
+  const rejectUnauthorized = !['false', '0', 'no', 'off'].includes(rejectUnauthorizedRaw.toLowerCase());
 
   if (!pool) {
-    pool = new Pool({ connectionString: databaseUrl });
+    pool = new Pool({
+      connectionString: databaseUrl,
+      ssl: useSsl
+        ? {
+            rejectUnauthorized,
+          }
+        : undefined,
+    });
   }
 
   return pool;
