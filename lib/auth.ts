@@ -47,30 +47,42 @@ function getFromEnv(...keys: string[]) {
 function buildDatabaseUrlFromParts() {
   const host = getFromEnv(
     'AUTH_DB_HOST',
+    'AUTH_DATABASE_HOST',
+    'AUTH_DB_ENDPOINT',
     'DB_HOST',
+    'DATABASE_HOST',
     'PGHOST',
     'POSTGRES_HOST',
     'RDS_HOSTNAME'
   );
-  const port = getFromEnv('AUTH_DB_PORT', 'DB_PORT', 'PGPORT', 'POSTGRES_PORT', 'RDS_PORT') || '5432';
+  const port =
+    getFromEnv('AUTH_DB_PORT', 'AUTH_DATABASE_PORT', 'DB_PORT', 'DATABASE_PORT', 'PGPORT', 'POSTGRES_PORT', 'RDS_PORT') ||
+    '5432';
   const database = getFromEnv(
     'AUTH_DB_NAME',
+    'AUTH_DATABASE_NAME',
     'DB_NAME',
+    'DATABASE_NAME',
     'PGDATABASE',
     'POSTGRES_DATABASE',
     'RDS_DB_NAME'
   );
   const user = getFromEnv(
     'AUTH_DB_USER',
+    'AUTH_DATABASE_USER',
     'DB_USER',
     'DB_USERNAME',
+    'DATABASE_USER',
+    'DATABASE_USERNAME',
     'PGUSER',
     'POSTGRES_USER',
     'RDS_USERNAME'
   );
   const password = getFromEnv(
     'AUTH_DB_PASSWORD',
+    'AUTH_DATABASE_PASSWORD',
     'DB_PASSWORD',
+    'DATABASE_PASSWORD',
     'PGPASSWORD',
     'POSTGRES_PASSWORD',
     'RDS_PASSWORD'
@@ -89,15 +101,18 @@ function getDatabaseUrl() {
   const databaseUrl =
     getFromEnv(
       'AUTH_DATABASE_URL',
+      'AUTH_DB_URL',
       'DATABASE_URL',
+      'DB_URL',
       'POSTGRES_URL',
+      'PG_URL',
       'POSTGRES_PRISMA_URL',
       'POSTGRES_URL_NON_POOLING'
     ) || buildDatabaseUrlFromParts();
 
   if (!databaseUrl) {
     throw new Error(
-      'Auth DB is not configured. Set AUTH_DATABASE_URL / DATABASE_URL / POSTGRES_URL, or set host/user/password vars (PGHOST/PGUSER/PGPASSWORD/PGDATABASE).'
+      'Auth DB is not configured. Set AUTH_DATABASE_URL / AUTH_DB_URL / DATABASE_URL / DB_URL / POSTGRES_URL, or set host/user/password vars (AUTH_DB_HOST/AUTH_DB_USER/AUTH_DB_PASSWORD/AUTH_DB_NAME or PGHOST/PGUSER/PGPASSWORD/PGDATABASE).'
     );
   }
 
@@ -112,7 +127,10 @@ function getPool() {
 
   const host = getFromEnv(
     'AUTH_DB_HOST',
+    'AUTH_DATABASE_HOST',
+    'AUTH_DB_ENDPOINT',
     'DB_HOST',
+    'DATABASE_HOST',
     'PGHOST',
     'POSTGRES_HOST',
     'RDS_HOSTNAME'
