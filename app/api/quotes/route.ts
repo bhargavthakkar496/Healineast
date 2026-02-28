@@ -26,14 +26,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  console.log('New quote request:', {
-    patientName,
-    email,
-    whatsappNumber,
-    nationality,
+  console.log('New quote request received', {
     procedureId,
     preferredDate,
-    notes,
+    hasNotes: Boolean(notes),
+    metadata: {
+      patientNameLength: patientName.length,
+      nationality,
+      emailDomain: email.split('@')[1] || null,
+      whatsappLast4: whatsappNumber.slice(-4),
+    },
   });
 
   const shouldSendWhatsApp =
