@@ -35,17 +35,44 @@ interface DbUserRow {
 let pool: Pool | null = null;
 let usersTableReady: Promise<void> | null = null;
 
+function getFromEnv(...keys: string[]) {
+  for (const key of keys) {
+    const value = process.env[key]?.trim();
+    if (value) return value;
+  }
+
+  return null;
+}
+
+function buildDatabaseUrlFromParts() {
+  const host = getFromEnv('AUTH_DB_HOST', 'PGHOST', 'POSTGRES_HOST', 'RDS_HOSTNAME');
+  const port = getFromEnv('AUTH_DB_PORT', 'PGPORT', 'POSTGRES_PORT', 'RDS_PORT') || '5432';
+  const database = getFromEnv('AUTH_DB_NAME', 'PGDATABASE', 'POSTGRES_DATABASE', 'RDS_DB_NAME');
+  const user = getFromEnv('AUTH_DB_USER', 'PGUSER', 'POSTGRES_USER', 'RDS_USERNAME');
+  const password = getFromEnv('AUTH_DB_PASSWORD', 'PGPASSWORD', 'POSTGRES_PASSWORD', 'RDS_PASSWORD');
+
+  if (!host || !database || !user || !password) {
+    return null;
+  }
+
+  const encodedUser = encodeURIComponent(user);
+  const encodedPassword = encodeURIComponent(password);
+  return `postgresql://${encodedUser}:${encodedPassword}@${host}:${port}/${database}?sslmode=require`;
+}
+
 function getDatabaseUrl() {
   const databaseUrl =
-    process.env.AUTH_DATABASE_URL ||
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL_NON_POOLING;
+    getFromEnv(
+      'AUTH_DATABASE_URL',
+      'DATABASE_URL',
+      'POSTGRES_URL',
+      'POSTGRES_PRISMA_URL',
+      'POSTGRES_URL_NON_POOLING'
+    ) || buildDatabaseUrlFromParts();
 
   if (!databaseUrl) {
     throw new Error(
-      'One of AUTH_DATABASE_URL, DATABASE_URL, POSTGRES_URL, POSTGRES_PRISMA_URL, or POSTGRES_URL_NON_POOLING is required for auth.'
+      'Auth DB is not configured. Set AUTH_DATABASE_URL / DATABASE_URL / POSTGRES_URL, or set host/user/password vars (PGHOST/PGUSER/PGPASSWORD/PGDATABASE).'
     );
   }
 
