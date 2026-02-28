@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser, createSessionToken, setSessionCookie, validateSigninPayload } from '@/lib/auth';
 
 function getAuthConfigDebug() {
+  if (process.env.NODE_ENV === 'production') {
+    return undefined;
+  }
+
   const keys = [
     'AUTH_DATABASE_URL',
     'AUTH_DB_URL',
@@ -94,6 +98,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const authError = toAuthServiceError(error);
     console.error('Signin failed', error);
-    return NextResponse.json({ error: authError.message, debug: getAuthConfigDebug() }, { status: authError.status });
+    const debug = getAuthConfigDebug();
+    return NextResponse.json({ error: authError.message, ...(debug ? { debug } : {}) }, { status: authError.status });
   }
 }
