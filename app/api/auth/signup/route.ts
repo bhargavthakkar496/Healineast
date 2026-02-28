@@ -2,18 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { createSessionToken, createUser, setSessionCookie, validateSignupPayload } from '@/lib/auth';
 
+function getAuthConfigDebug() {
+  const keys = [
+    'AUTH_DATABASE_URL',
+    'AUTH_DB_URL',
+    'DATABASE_URL',
+    'DB_URL',
+    'POSTGRES_URL',
+    'AUTH_DB_HOST',
+    'AUTH_DB_USER',
+    'AUTH_DB_NAME',
+    'PGHOST',
+    'PGUSER',
+    'PGDATABASE',
+  ] as const;
+
+  const configured = keys.filter((key) => Boolean(process.env[key]?.trim()));
+  return {
+    configuredKeys: configured,
+    nodeEnv: process.env.NODE_ENV || 'unknown',
+  };
+}
+
 function toAuthServiceError(error: unknown) {
   if (error instanceof Error) {
     if (
       error.message.includes('AUTH_DATABASE_URL') ||
+      error.message.includes('AUTH_DB_URL') ||
       error.message.includes('DATABASE_URL') ||
+      error.message.includes('DB_URL') ||
       error.message.includes('POSTGRES_URL') ||
       error.message.includes('PGHOST')
     ) {
       return {
         status: 503,
         message:
-          'Authentication service is not configured. Set AUTH_DATABASE_URL (or DATABASE_URL / POSTGRES_URL). You can also provide PGHOST/PGUSER/PGPASSWORD/PGDATABASE and try again.',
+          'Authentication service is not configured. Set AUTH_DATABASE_URL / AUTH_DB_URL (or DATABASE_URL / DB_URL / POSTGRES_URL). You can also provide AUTH_DB_HOST/AUTH_DB_USER/AUTH_DB_PASSWORD/AUTH_DB_NAME (or PGHOST/PGUSER/PGPASSWORD/PGDATABASE) and try again.',
       };
     }
 
@@ -66,6 +90,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const authError = toAuthServiceError(error);
     console.error('Signup failed', error);
-    return NextResponse.json({ error: authError.message }, { status: authError.status });
+    return NextResponse.json({ error: authError.message, debug: getAuthConfigDebug() }, { status: authError.status });
   }
 }
