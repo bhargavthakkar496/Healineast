@@ -65,6 +65,12 @@ If signup/signin fails and records are not being stored, verify the auth DB conn
 - Ensure PostgreSQL is running and reachable from the app process.
 - Try connecting manually with `psql "$AUTH_DATABASE_URL"`.
 
+#### AWS Amplify + Aurora checklist
+- Add the auth env vars in **Amplify Hosting → App settings → Environment variables** (server-side vars like `AUTH_DATABASE_URL` are required; `.env.example` is only a template).
+- After changing env vars in Amplify, trigger a **new deploy** for the branch so the compute runtime picks up updated values.
+- If Aurora is in a private VPC, make sure your Amplify SSR compute can reach it (security group + inbound rule on port `5432`).
+- Prefer `?sslmode=require` in the connection string for Aurora PostgreSQL.
+
 When DB configuration is missing/unreachable, auth APIs now return explicit `503` errors indicating configuration or connectivity problems.
 
 ## Integrations (stubs & guidance)

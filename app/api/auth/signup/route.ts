@@ -9,6 +9,8 @@ function getAuthConfigDebug() {
     'DATABASE_URL',
     'DB_URL',
     'POSTGRES_URL',
+    'AUTH_DATABASE_URI',
+    'AUTH_DB_URI',
     'AUTH_DB_HOST',
     'AUTH_DB_USER',
     'AUTH_DB_NAME',
@@ -32,12 +34,14 @@ function toAuthServiceError(error: unknown) {
       error.message.includes('DATABASE_URL') ||
       error.message.includes('DB_URL') ||
       error.message.includes('POSTGRES_URL') ||
+      error.message.includes('AUTH_DATABASE_URI') ||
+      error.message.includes('AUTH_DB_URI') ||
       error.message.includes('PGHOST')
     ) {
       return {
         status: 503,
         message:
-          'Authentication service is not configured. Set AUTH_DATABASE_URL / AUTH_DB_URL (or DATABASE_URL / DB_URL / POSTGRES_URL). You can also provide AUTH_DB_HOST/AUTH_DB_USER/AUTH_DB_PASSWORD/AUTH_DB_NAME (or PGHOST/PGUSER/PGPASSWORD/PGDATABASE) and try again.',
+          'Authentication service is not configured. Set AUTH_DATABASE_URL / AUTH_DB_URL / AUTH_DATABASE_URI (or DATABASE_URL / DB_URL / POSTGRES_URL). You can also provide AUTH_DB_HOST/AUTH_DB_USER/AUTH_DB_PASSWORD/AUTH_DB_NAME (or PGHOST/PGUSER/PGPASSWORD/PGDATABASE) and try again.',
       };
     }
 

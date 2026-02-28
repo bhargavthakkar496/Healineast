@@ -34,7 +34,6 @@ interface DbUserRow {
 
 let pool: Pool | null = null;
 let usersTableReady: Promise<void> | null = null;
-
 function getFromEnv(...keys: string[]) {
   for (const key of keys) {
     const value = process.env[key]?.trim();
@@ -107,7 +106,9 @@ function getDatabaseUrl() {
       'POSTGRES_URL',
       'PG_URL',
       'POSTGRES_PRISMA_URL',
-      'POSTGRES_URL_NON_POOLING'
+      'POSTGRES_URL_NON_POOLING',
+      'AUTH_DATABASE_URI',
+      'AUTH_DB_URI'
     ) || buildDatabaseUrlFromParts();
 
   if (!databaseUrl) {
