@@ -117,6 +117,23 @@ function getDatabaseUrl() {
     );
   }
 
+  try {
+    const parsed = new URL(databaseUrl);
+    const databaseName = parsed.pathname.replace(/^\//, '').trim();
+
+    if (!databaseName) {
+      throw new Error(
+        'Auth DB connection string must include a database name (for example, postgresql://user:pass@host:5432/postgres).'
+      );
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('database name')) {
+      throw error;
+    }
+
+    throw new Error('Auth DB connection string is invalid. Please verify AUTH_DATABASE_URL / DATABASE_URL format.');
+  }
+
   return databaseUrl;
 }
 
