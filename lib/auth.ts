@@ -1,6 +1,7 @@
 import { randomUUID, scryptSync, timingSafeEqual, createHmac } from 'crypto';
 import { Pool } from 'pg';
 
+import getConfig from 'next/config';
 import { cookies } from 'next/headers';
 import { sanitizeEmail, sanitizeText } from '@/lib/utils';
 
@@ -34,12 +35,26 @@ interface DbUserRow {
 
 let pool: Pool | null = null;
 let usersTableReady: Promise<void> | null = null;
+
+function getRuntimeConfig() {
+  try {
+    return getConfig().serverRuntimeConfig || {};
+  } catch {
+    return {};
+  }
+}
+
 function getFromEnv(...keys: string[]) {
   for (const key of keys) {
     const value = process.env[key]?.trim();
     if (value) return value;
   }
-
+  // Fallback: Amplify/Lambda may not pass env to runtime – use serverRuntimeConfig (baked at build)
+  const sr = getRuntimeConfig();
+  for (const key of keys) {
+    const value = sr[key]?.trim?.();
+    if (value) return value;
+  }
   return null;
 }
 
