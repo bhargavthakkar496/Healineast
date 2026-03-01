@@ -194,9 +194,26 @@ function getPool() {
         ? false
         : true;
 
+  // pg treats sslmode=require as verify-full and ignores Pool ssl.rejectUnauthorized – strip from URL
+  // so our explicit ssl config (rejectUnauthorized) is used
+  let poolConnectionString = databaseUrl;
+  if (useSsl && !rejectUnauthorized) {
+    try {
+      const u = new URL(databaseUrl);
+      u.searchParams.delete('sslmode');
+      u.searchParams.delete('ssl');
+      u.searchParams.delete('sslcert');
+      u.searchParams.delete('sslkey');
+      u.searchParams.delete('sslrootcert');
+      poolConnectionString = u.toString();
+    } catch {
+      // keep original if parse fails
+    }
+  }
+
   if (!pool) {
     pool = new Pool({
-      connectionString: databaseUrl,
+      connectionString: poolConnectionString,
       ssl: useSsl
         ? {
             rejectUnauthorized,
@@ -245,7 +262,9 @@ function mapRowToStoredUser(row: DbUserRow): StoredUser {
 }
 
 function getSessionSecret() {
-  const secret = process.env.AUTH_SESSION_SECRET || 'dev-only-secret-change-me';
+  const runtime = getRuntimeConfig() as { AUTH_SESSION_SECRET?: string };
+  const secret = (process.env.AUTH_SESSION_SECRET || runtime.AUTH_SESSION_SECRET || '').trim() ||
+    'dev-only-secret-change-me';
 
   if (process.env.NODE_ENV === 'production' && secret === 'dev-only-secret-change-me') {
     throw new Error('AUTH_SESSION_SECRET must be configured in production.');
