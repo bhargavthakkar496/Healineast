@@ -99,7 +99,16 @@ export async function POST(req: NextRequest) {
     const authError = toAuthServiceError(error);
     console.error('Signup failed', error);
 
+    // Temporary: surface more diagnostics to help debug production configuration issues.
+    const errorMessage = error instanceof Error ? error.message : String(error);
     const debug = getAuthConfigDebug();
-    return NextResponse.json({ error: authError.message, ...(debug ? { debug } : {}) }, { status: authError.status });
+    return NextResponse.json(
+      {
+        error: authError.message,
+        details: errorMessage,
+        ...(debug ? { debug } : {}),
+      },
+      { status: authError.status }
+    );
   }
 }
