@@ -158,16 +158,24 @@ function getPool() {
   const shouldDisableSsl = sslMode === 'disable' || sslMode === 'false' || sslMode === 'off';
   const shouldRequireSsl = sslMode === 'require' || sslMode === 'true' || sslMode === 'on';
 
-  const host = getFromEnv(
-    'AUTH_DB_HOST',
-    'AUTH_DATABASE_HOST',
-    'AUTH_DB_ENDPOINT',
-    'DB_HOST',
-    'DATABASE_HOST',
-    'PGHOST',
-    'POSTGRES_HOST',
-    'RDS_HOSTNAME'
-  );
+  let host =
+    getFromEnv(
+      'AUTH_DB_HOST',
+      'AUTH_DATABASE_HOST',
+      'AUTH_DB_ENDPOINT',
+      'DB_HOST',
+      'DATABASE_HOST',
+      'PGHOST',
+      'POSTGRES_HOST',
+      'RDS_HOSTNAME'
+    ) ||
+    (() => {
+      try {
+        return new URL(databaseUrl).hostname;
+      } catch {
+        return null;
+      }
+    })();
   const hasExplicitSslMode = /(?:[?&])sslmode=/i.test(databaseUrl);
   const isLocalHost = Boolean(host && /^(localhost|127\.0\.0\.1|::1)$/i.test(host));
   const isRdsHost = Boolean(host && host.includes('rds.amazonaws.com'));
@@ -177,9 +185,14 @@ function getPool() {
     (shouldRequireSsl || hasExplicitSslMode || isRdsHost || (process.env.NODE_ENV === 'production' && !isLocalHost));
 
   const rejectUnauthorizedRaw =
-    getFromEnv('AUTH_DB_SSL_REJECT_UNAUTHORIZED', 'DB_SSL_REJECT_UNAUTHORIZED', 'PGSSLCERT_STRICT') ||
-    'true';
-  const rejectUnauthorized = !['false', '0', 'no', 'off'].includes(rejectUnauthorizedRaw.toLowerCase());
+    getFromEnv('AUTH_DB_SSL_REJECT_UNAUTHORIZED', 'DB_SSL_REJECT_UNAUTHORIZED', 'PGSSLCERT_STRICT') ?? '';
+  // AWS RDS uses certs that pg treats as self-signed – default to false when connecting to RDS
+  const rejectUnauthorized =
+    rejectUnauthorizedRaw !== ''
+      ? !['false', '0', 'no', 'off'].includes(rejectUnauthorizedRaw.toLowerCase())
+      : isRdsHost
+        ? false
+        : true;
 
   if (!pool) {
     pool = new Pool({
