@@ -1,0 +1,41 @@
+version: 1
+applications:
+  - frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci || npm install
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      # No 'start' for Amplify Hosting – it deploys the build output
+      environment:
+        variables:
+          # --- server-only (used by your auth.ts) ---
+          AUTH_DATABASE_URL: ${AUTH_DATABASE_URL}
+          AUTH_DB_HOST: ${AUTH_DB_HOST}
+          AUTH_DB_PORT: ${AUTH_DB_PORT}
+          AUTH_DB_USER: ${AUTH_DB_USER}
+          AUTH_DB_PASSWORD: ${AUTH_DB_PASSWORD}
+          AUTH_DB_NAME: ${AUTH_DB_NAME}
+          AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET}
+          AUTH_DB_SSL: ${AUTH_DB_SSL}
+          AUTH_DB_SSL_REJECT_UNAUTHORIZED: ${AUTH_DB_SSL_REJECT_UNAUTHORIZED}
+
+          # --- public & other app vars ---
+          NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
+          NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER}
+          CONTACT_EMAIL: ${CONTACT_EMAIL}
+
+          # --- 3rd party secrets (server-side) ---
+          RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+          RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+          WHATSAPP_CLOUD_API_ACCESS_TOKEN: ${WHATSAPP_CLOUD_API_ACCESS_TOKEN}
+          WHATSAPP_CLOUD_PHONE_NUMBER_ID: ${WHATSAPP_CLOUD_PHONE_NUMBER_ID}
+          WHATSAPP_CLOUD_API_VERSION: ${WHATSAPP_CLOUD_API_VERSION}
+          WHATSAPP_CLOUD_TEMPLATE_NAME: ${WHATSAPP_CLOUD_TEMPLATE_NAME}
+          WHATSAPP_CLOUD_TEMPLATE_LANGUAGE: ${WHATSAPP_CLOUD_TEMPLATE_LANGUAGE}
